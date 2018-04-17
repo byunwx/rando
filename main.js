@@ -1,9 +1,6 @@
 const {app, BrowserWindow, ipcMain} = require('electron')
 const fs=require('fs');
   process.env.NODE_ENV = "production";
-// let Data=fs.readFileSync('category.json', 'utf8');
-// let data=JSON.parse(Data);
-// let Data=fs.readFileSync('category.json', 'utf8');
   const path = require('path')
   const url = require('url')
 
