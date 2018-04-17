@@ -5,3 +5,4 @@ electron js app for desk top!
 
 https://docs.google.com/presentation/d/15BFvESJQ2KQ33diYFA3isGlT8b7KwMkQ6GjB38UHoTA/edit?usp=sharing
 
+![image of working app](/images/rando.png)
