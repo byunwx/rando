@@ -1,0 +1,33 @@
+div .red{
+  background-color: #da524e
+}
+div .yellow{
+  background-color: #f0ad4e
+}
+div .green{
+  background-color: #5bb85b
+}
+.floatright{
+  float: right;
+}
+li{
+  font-size: 20px
+}
+#result{
+  text-align: center;
+  font-size: 50px;
+  font-weight: bold;
+}
+#result .msg{
+  font-size: 30px;
+}
+.text{
+  font-weight: bold;
+  font-size: 20px;
+  text-align: center;
+  padding: 10px 10px 0px 10px;
+}
+.catIcon{
+  text-align: center;
+  /* padding-left: 10px; */
+}

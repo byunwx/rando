@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="./util/jquery-3.3.1.min.js"></script>
+    <link href="./util/iconFont.css" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <title>byunwx.github.io</title>
+  </head>
+  <body>
+    <i class='material-icons floatright'>clear</i>
+    <br>
+    <h1>RANDO:</h1>
+    <!-- <div class="" id="addcatdiv"> -->
+      <input type="text" id="newCat" placeholder="ADD CATEGORY">
+      <br><br>
+      <!-- <button type="button" onclick="writeFileplz($('#newCat').val().trim())">submit</button> -->
+    <!-- </div> -->
+    <div id="category">
+
+    </div>
+    <script src="./util/jquery-3.3.1.min.js"></script>
+
+    <script type="text/javascript">
+
+    // $(document).ready(()=>{
+      const fs=require('fs');
+      const electron = require("electron");
+      const {ipcRenderer} = electron;
+      const path = require('path')
+      let Data
+      let data
+      let dataPath="";
+
+      ipcRenderer.send("app:dataPath")
+
+      const getfreshData=()=>{
+        Data=fs.readFileSync(dataPath, 'utf8');
+        data=JSON.parse(Data);
+      }
+      ipcRenderer.on("app:dataPath", (e, item)=>{
+        dataPath=item;
+        console.log(dataPath);
+        loadCatfunction();
+      })
+      ipcRenderer.on("cat:refresh", ()=>{
+        loadCatfunction();
+      })
+
+      const loadCatfunction= ()=>{
+        getfreshData();
+        $("#category").empty();
+        for (let i = 0; i < data.length; i++) {
+          let newDiv= $("<div class='cat'>")
+          let icons= $("<div class='catIcon'>").html("<i class='material-icons deleteItem'>clear</i>"+"<i class='material-icons refreshCat'>refresh</i>")
+          if (data[i].contents.length==0 && data[i].picked.length==0) {
+            newDiv= $("<div class='cat red'>")
+            icons= $("<div class='catIcon'>").html("<i class='material-icons editCat'>edit</i>"+"<i class='material-icons deleteItem'>clear</i>"+"<i class='material-icons refreshCat'>refresh</i>")
+          }else if (data[i].contents.length==0) {
+            newDiv= $("<div class='cat red'>")
+          }else if (data[i].picked.length==0) {
+            newDiv= $("<div class='cat green'>")
+            icons= $("<div class='catIcon'>").html("<i class='material-icons editCat'>edit</i>"+"<i class='material-icons deleteItem'>clear</i>"+"<i class='material-icons refreshCat'>refresh</i>")
+          }else{
+            newDiv= $("<div class='cat yellow'>")
+          }
+          let textDiv= $("<div class='text'>").text(data[i].name)
+          newDiv.append(textDiv, icons)
+          newDiv.attr("id", data[i].id)
+          $("#category").append(newDiv);
+        }
+        editOnClick();
+        textclassOnclick();
+        deleteItemClick();
+        refreshCatClick();
+      }
+      const editOnClick=()=>{
+        $(".editCat").on("click", function(){
+          console.log("click");
+          console.log(this.parentElement.parentElement.id);
+          ipcRenderer.send("cat:id", this.parentElement.parentElement.id);
+        })
+      }
+      const textclassOnclick=()=>{
+        $(".text").on("click", function(){
+          console.log("getrando");
+          let newid=this.parentElement.id;
+          console.log(newid);
+          getfreshData();
+          for (var i = 0; i < data.length; i++) {
+            if (data[i].id==newid) {
+              let newitem={
+                catId:newid,
+                indexId:i
+              }
+              if (data[i].contents.length==0) {
+                ipcRenderer.send("result:reset", newid);
+                return
+              }else{
+                return ipcRenderer.send("result:get", newitem);
+              }
+            }
+          }
+        })
+      }
+      const refreshCatClick = ()=>{
+        $(".refreshCat").on("click", function(){
+          let categoryId= this.parentElement.parentElement.id;
+          ipcRenderer.send("result:reset", categoryId);
+        })
+      }
+      const deleteItemClick =()=>{
+        $(".deleteItem").on("click", function(){
+          let categoryId= this.parentElement.parentElement.id;
+          let newDelete={
+            catId:categoryId
+          }
+          ipcRenderer.send("cat:delete", newDelete);
+        })
+      }
+
+      $(".floatright").on("click", function(){
+        ipcRenderer.send("app:quit")
+      })
+
+      $("#newCat").keyup(function(e){
+      var code = e.which; // recommended to use e.which, it's normalized across browsers
+      if(code==13)e.preventDefault();
+      if(code==13||code==188||code==186){
+        getfreshData();
+        let newCat=$('#newCat').val().trim();
+        let newdataId
+        if (data.length>0) {
+          newdataId=parseInt(data[data.length-1].id)+1;
+        }else {
+          newdataId=0
+        }
+        console.log(newdataId);
+        if (newCat!="") {
+          let newData={
+            "name": newCat,
+            "contents":[],
+            "picked":[],
+            "id": newdataId
+          }
+          data.push(newData)
+          ipcRenderer.send("cat:add", data);
+          this.value="";
+          return loadCatfunction();
+        }else{
+          return console.log("empty");
+        }
+      }})
+
+
+      loadCatfunction();
+      // getfreshData();
+      $("#addcatdiv").hide();
+    </script>
+  </body>
+</html>

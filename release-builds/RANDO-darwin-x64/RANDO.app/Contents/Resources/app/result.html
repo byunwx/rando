@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="./util/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
+    <title>byunwx.github.io</title>
+  </head>
+  <body>
+    <button type="goback" onclick="goback()">goback</button>
+    <br>
+    <h1 id="result"></h1>
+    <button type="button" name="button" id="rando">GET RANDO</button>
+    <script src="./util/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+    const fs=require('fs');
+    const electron = require("electron");
+    const {ipcRenderer} = electron;
+    const path = require('path')
+    let Data
+    let data
+    let catId
+    let indexId
+    let dataPath
+    ipcRenderer.on("app:dataPath", (e, item)=>{
+      dataPath=item;
+    })
+    const getfreshData=()=>{
+      Data=fs.readFileSync(dataPath, 'utf8');
+      data=JSON.parse(Data);
+    }
+
+    ipcRenderer.on("result:make", (e, item)=>{
+      dataPath=item.dataPath
+      $("#result").empty()
+      console.log(item.rando);
+      $("#result").text(item.rando)
+      catId=item.catId
+      indexId=item.indexId
+    })
+    $("#rando").on("click", function(){
+      getfreshData();
+      if (data[indexId].contents.length==0) {
+        $("#result").empty()
+        $("#result").append($("<div class='msg'>").text("FINISH: AUTO-RESET"));
+        ipcRenderer.send("result:reset", catId);
+      }else{
+        let sendItem={
+          indexId:indexId,
+          catId:catId
+        }
+        ipcRenderer.send("result:get", sendItem);
+      }
+    })
+    const goback=()=>{
+      ipcRenderer.send("goback:cat");
+    }
+    </script>
+  </body>
+</html>

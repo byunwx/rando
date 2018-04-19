@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="./util/jquery-3.3.1.min.js"></script>
+    <link href="./util/iconFont.css" rel="stylesheet">
+    <link rel="stylesheet" href="./style.css">
+    <title>byunwx.github.io</title>
+  </head>
+  <body>
+    <button type="goback" onclick="goback()">goback</button>
+    <br>
+    <h1>ADD OR REMOVE:</h1>
+    <input type="text" name="add" id="addcontents" placeholder="add items">
+    <ul id="each">
+
+    </ul>
+    <script src="./util/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript">
+    const fs=require('fs');
+    const electron = require("electron");
+    const {ipcRenderer} = electron;
+    const path = require('path')
+    let categoryId
+    let Data
+    let data
+    let dataPath
+    ipcRenderer.on("app:dataPath", (e, item)=>{
+      dataPath=item;
+    })
+
+    const getfreshData=()=>{
+      console.log(dataPath);
+      Data=fs.readFileSync(dataPath, 'utf8');
+      data=JSON.parse(Data);
+      console.log(data);
+    }
+    $("#addcontents").keyup(function(e){
+    var code = e.which; // recommended to use e.which, it's normalized across browsers
+    if(code==13)e.preventDefault();
+    if(code==13||code==188||code==186){
+        let newItem=$(this).val();
+        if (newItem=="") {
+          return
+        }else{
+          let itemNid={
+            newItem:newItem,
+            catId:categoryId
+          }
+          console.log(itemNid);
+          ipcRenderer.send("contents:add", itemNid);
+          this.value="";
+          }
+        }
+    });
+    ipcRenderer.on("cat:id", (e, id)=>{
+      dataPath=id.dataPath;
+      categoryId=id.id;
+      console.log(dataPath);
+      getfreshData()
+      for (var i = 0; i < data.length; i++) {
+        if (data[i].id==categoryId) {
+          $("#each").empty();
+          for (let j = 0; j < data[i].contents.length; j++) {
+            let newLi=$("<li>").html(data[i].contents[j]+"<i class='material-icons deleteItem'>clear</i>").attr("data_index", j)
+            $("#each").append(newLi);
+          }
+          deleteItemClick();
+        }
+      }
+    })
+    const deleteItemClick =()=>{
+      $(".deleteItem").on("click", function(){
+        let index= this.parentElement.getAttribute('data_index');
+        console.log(index);
+        let newDelete={
+          index:index,
+          catId:categoryId
+        }
+        ipcRenderer.send("contents:delete", newDelete);
+      })
+    }
+
+    const goback=()=>{
+      ipcRenderer.send("goback:cat");
+    }
+    </script>
+  </body>
+</html>
