@@ -24,12 +24,16 @@
     let categoryId
     let Data
     let data
-    Data=fs.readFileSync(path.join(__dirname, 'category.json'), 'utf8');
-    data=JSON.parse(Data);
+    let dataPath
+    ipcRenderer.on("app:dataPath", (e, item)=>{
+      dataPath=item;
+    })
 
     const getfreshData=()=>{
-      Data=fs.readFileSync(path.join(__dirname, 'category.json'), 'utf8');
+      console.log(dataPath);
+      Data=fs.readFileSync(dataPath, 'utf8');
       data=JSON.parse(Data);
+      console.log(data);
     }
     $("#addcontents").keyup(function(e){
     var code = e.which; // recommended to use e.which, it's normalized across browsers
@@ -50,10 +54,12 @@
         }
     });
     ipcRenderer.on("cat:id", (e, id)=>{
+      dataPath=id.dataPath;
+      categoryId=id.id;
+      console.log(dataPath);
       getfreshData()
-      categoryId=id;
       for (var i = 0; i < data.length; i++) {
-        if (data[i].id==id) {
+        if (data[i].id==categoryId) {
           $("#each").empty();
           for (let j = 0; j < data[i].contents.length; j++) {
             let newLi=$("<li>").html(data[i].contents[j]+"<i class='material-icons deleteItem'>clear</i>").attr("data_index", j)

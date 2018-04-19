@@ -30,11 +30,19 @@
       const path = require('path')
       let Data
       let data
+      let dataPath="";
+
+      ipcRenderer.send("app:dataPath")
+
       const getfreshData=()=>{
-        Data=fs.readFileSync(path.join(__dirname, 'category.json'), 'utf8');
+        Data=fs.readFileSync(dataPath, 'utf8');
         data=JSON.parse(Data);
       }
-
+      ipcRenderer.on("app:dataPath", (e, item)=>{
+        dataPath=item;
+        console.log(dataPath);
+        loadCatfunction();
+      })
       ipcRenderer.on("cat:refresh", ()=>{
         loadCatfunction();
       })

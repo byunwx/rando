@@ -11,18 +11,35 @@ const fs=require('fs');
   let result
   let Data
   let data
+  let dataPath= path.join(app.getPath("documents"), "RANDOAPP_DATA.json");
+  fs.stat(dataPath, function(err, stat) {
+    if(err == null) {
+        console.log('File exists');
+    } else if(err.code == 'ENOENT') {
+        let arg=[{"contents":[],"id":2,"name":"EMPTY","picked":[]},{"contents":["2","3","4","5","6"],"id":3,"name":"PROCESS","picked":["1"]},{"contents":["B","Y","U","N","W","X"],"id":4,"name":"FRESH","picked":[]},{"contents":["6","1","4","9","8","10","2","7","5","3"],"id":5,"name":"1-10","picked":[]},{"contents":["A","B","C","D","E","F","G"],"id":6,"name":"A-G","picked":[]}];
+        fs.writeFile(dataPath, JSON.stringify(arg));
+        location.reload();
+    } else {
+        console.log('Some other error: ', err.code);
+    }
+  });
+
   const getfreshData=()=>{
-    Data=fs.readFileSync(path.join(__dirname, 'category.json'), 'utf8');
+    Data=fs.readFileSync(dataPath, 'utf8');
     data=JSON.parse(Data);
   }
   const writeFilefunction=(arg, arg2 = 0)=>{
-    fs.writeFile(path.join(__dirname, '/category.json'), JSON.stringify(arg), (err)=>{
+    fs.writeFile(dataPath, JSON.stringify(arg), (err)=>{
       if (err) {
         return console.log(err);
       }
       console.log("data changed")
       win.webContents.send("cat:refresh")
-      edit.webContents.send("cat:id", arg2);
+      let item={
+        dataPath:dataPath,
+        id:arg2
+      }
+      edit.webContents.send("cat:id", item);
     })
   }
 
@@ -133,9 +150,13 @@ const fs=require('fs');
   //catch id
   ipcMain.on("cat:id", (e, id) =>{
     console.log(id);
+    let item={
+      id:id,
+      dataPath:dataPath
+    }
     win.hide();
     edit.show();
-    edit.webContents.send("cat:id", id);
+    edit.webContents.send("cat:id", item);
 
     // createEdit(id, ()=>{
     //   edit.webContents.send("cat:id", id);
@@ -162,6 +183,7 @@ const fs=require('fs');
     data[item.indexId].contents.splice(randomPoint, 1);
     data[item.indexId].picked.push(rando);
     let senditem={
+      dataPath:dataPath,
       rando:rando,
       catId:item.catId,
       indexId:item.indexId
@@ -226,4 +248,11 @@ const fs=require('fs');
   ipcMain.on("app:quit", ()=>{
     console.log("quit");
     app.quit()
+  })
+
+  ipcMain.on("app:dataPath", ()=>{
+    console.log(dataPath);
+    win.webContents.send("app:dataPath", dataPath);
+    edit.webContents.send("app:dataPath", dataPath);
+    result.webContents.send("app:dataPath", dataPath);
   })
